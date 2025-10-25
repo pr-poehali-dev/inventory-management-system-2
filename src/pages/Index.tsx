@@ -98,6 +98,22 @@ const Index = () => {
     toast({ title: 'Вещь удалена', description: 'Запись удалена из инвентаря' });
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, isEditing: boolean = false) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const imageUrl = reader.result as string;
+      if (isEditing && editingItem) {
+        setEditingItem({ ...editingItem, imageUrl });
+      } else {
+        setFormData({ ...formData, imageUrl });
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const openEditDialog = (item: Item) => {
     setEditingItem({ ...item });
     setIsEditDialogOpen(true);
@@ -176,13 +192,42 @@ const Index = () => {
                     </Select>
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="imageUrl">URL фотографии</Label>
-                    <Input
-                      id="imageUrl"
-                      value={formData.imageUrl}
-                      onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                      placeholder="/placeholder.svg"
-                    />
+                    <Label htmlFor="imageUrl">Фотография</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="imageUrl"
+                        value={formData.imageUrl}
+                        onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                        placeholder="/placeholder.svg"
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => document.getElementById('file-upload-add')?.click()}
+                        className="gap-2"
+                      >
+                        <Icon name="Camera" size={18} />
+                        Загрузить
+                      </Button>
+                      <input
+                        id="file-upload-add"
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        onChange={(e) => handleImageUpload(e, false)}
+                        className="hidden"
+                      />
+                    </div>
+                    {formData.imageUrl && (
+                      <div className="mt-2">
+                        <img
+                          src={formData.imageUrl}
+                          alt="Предпросмотр"
+                          className="w-full h-48 object-cover rounded-lg border border-gray-200"
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="flex justify-end gap-2">
@@ -382,12 +427,41 @@ const Index = () => {
                 </Select>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="edit-imageUrl">URL фотографии</Label>
-                <Input
-                  id="edit-imageUrl"
-                  value={editingItem.imageUrl}
-                  onChange={(e) => setEditingItem({ ...editingItem, imageUrl: e.target.value })}
-                />
+                <Label htmlFor="edit-imageUrl">Фотография</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="edit-imageUrl"
+                    value={editingItem.imageUrl}
+                    onChange={(e) => setEditingItem({ ...editingItem, imageUrl: e.target.value })}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => document.getElementById('file-upload-edit')?.click()}
+                    className="gap-2"
+                  >
+                    <Icon name="Camera" size={18} />
+                    Загрузить
+                  </Button>
+                  <input
+                    id="file-upload-edit"
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={(e) => handleImageUpload(e, true)}
+                    className="hidden"
+                  />
+                </div>
+                {editingItem.imageUrl && (
+                  <div className="mt-2">
+                    <img
+                      src={editingItem.imageUrl}
+                      alt="Предпросмотр"
+                      className="w-full h-48 object-cover rounded-lg border border-gray-200"
+                    />
+                  </div>
+                )}
               </div>
             </div>
           )}

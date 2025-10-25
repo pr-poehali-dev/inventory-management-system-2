@@ -129,9 +129,65 @@ const Index = () => {
     return items.filter(item => item.location === location);
   };
 
-  const categories = items.filter(item => 
-    getItemsByLocation(item.name).length > 0 || item.name === 'Все вещи'
-  );
+  const renderItemTree = (parentName: string, level: number = 0): JSX.Element[] => {
+    const childItems = getItemsByLocation(parentName);
+    
+    return childItems.map((item) => {
+      const hasChildren = getItemsByLocation(item.name).length > 0;
+      
+      return (
+        <div key={item.id}>
+          <div
+            className="flex items-center gap-4 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+            style={{ marginLeft: `${level * 24}px` }}
+          >
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {level > 0 && (
+                <div className="w-6 h-6 flex items-center justify-center">
+                  <div className="w-3 h-px bg-gray-300"></div>
+                </div>
+              )}
+              {hasChildren ? (
+                <Icon name="FolderOpen" size={20} className="text-primary" />
+              ) : (
+                <Icon name="Package2" size={20} className="text-gray-400" />
+              )}
+            </div>
+            <img
+              src={item.imageUrl}
+              alt={item.name}
+              className="w-16 h-16 object-cover rounded border border-gray-200"
+            />
+            <div className="flex-1 min-w-0">
+              <h4 className="font-medium text-gray-900">{item.name}</h4>
+              <p className="text-sm text-gray-600 truncate">{item.description}</p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => openEditDialog(item)}
+              >
+                <Icon name="Pencil" size={14} />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => openMoveDialog(item)}
+              >
+                <Icon name="ArrowRightLeft" size={14} />
+              </Button>
+            </div>
+          </div>
+          {hasChildren && (
+            <div className="mt-3 space-y-3">
+              {renderItemTree(item.name, level + 1)}
+            </div>
+          )}
+        </div>
+      );
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -324,61 +380,18 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="categories">
-            <div className="grid gap-6">
-              {categories.map((category) => {
-                const categoryItems = getItemsByLocation(category.name);
-                return (
-                  <div key={category.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                    <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-                      <div className="flex items-center gap-3">
-                        <Icon name="Folder" size={20} className="text-primary" />
-                        <h3 className="text-lg font-semibold text-gray-900">{category.name}</h3>
-                        <Badge variant="outline">{categoryItems.length}</Badge>
-                      </div>
-                    </div>
-                    <div className="p-6">
-                      {categoryItems.length > 0 ? (
-                        <div className="grid gap-3">
-                          {categoryItems.map((item) => (
-                            <div
-                              key={item.id}
-                              className="flex items-center gap-4 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
-                            >
-                              <img
-                                src={item.imageUrl}
-                                alt={item.name}
-                                className="w-16 h-16 object-cover rounded border border-gray-200"
-                              />
-                              <div className="flex-1 min-w-0">
-                                <h4 className="font-medium text-gray-900">{item.name}</h4>
-                                <p className="text-sm text-gray-600 truncate">{item.description}</p>
-                              </div>
-                              <div className="flex gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => openEditDialog(item)}
-                                >
-                                  <Icon name="Pencil" size={14} />
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => openMoveDialog(item)}
-                                >
-                                  <Icon name="ArrowRightLeft" size={14} />
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-gray-500 text-center py-8">Вещей в этой категории пока нет</p>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+              <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                <div className="flex items-center gap-3">
+                  <Icon name="FolderTree" size={20} className="text-primary" />
+                  <h3 className="text-lg font-semibold text-gray-900">Иерархия вещей</h3>
+                </div>
+              </div>
+              <div className="p-6">
+                <div className="space-y-3">
+                  {renderItemTree('Все вещи')}
+                </div>
+              </div>
             </div>
           </TabsContent>
         </Tabs>

@@ -129,6 +129,18 @@ const Index = () => {
     return items.filter(item => item.location === location);
   };
 
+  const getAllDescendants = (itemName: string): string[] => {
+    const descendants: string[] = [];
+    const children = getItemsByLocation(itemName);
+    
+    children.forEach(child => {
+      descendants.push(child.name);
+      descendants.push(...getAllDescendants(child.name));
+    });
+    
+    return descendants;
+  };
+
   const renderItemTree = (parentName: string, level: number = 0): JSX.Element[] => {
     const childItems = getItemsByLocation(parentName);
     
@@ -432,7 +444,11 @@ const Index = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {items
-                      .filter(item => item.id !== editingItem.id)
+                      .filter(item => {
+                        if (item.id === editingItem.id) return false;
+                        const descendants = getAllDescendants(editingItem.name);
+                        return !descendants.includes(item.name);
+                      })
                       .map((item) => (
                         <SelectItem key={item.id} value={item.name}>
                           {item.name}
@@ -519,7 +535,11 @@ const Index = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {items
-                      .filter(item => item.id !== movingItem.id)
+                      .filter(item => {
+                        if (item.id === movingItem.id) return false;
+                        const descendants = getAllDescendants(movingItem.name);
+                        return !descendants.includes(item.name);
+                      })
                       .map((item) => (
                         <SelectItem key={item.id} value={item.name}>
                           {item.name}
